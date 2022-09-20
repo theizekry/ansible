@@ -1,0 +1,70 @@
+---
+- name: Install & Configure Apache
+  hosts: all
+  user: root
+
+  pre_tasks:
+    - name: Update APT Cache
+      apt: update_cache=true cache_valid_time=3600
+
+  handlers:
+    - name: Restart apache
+      service:
+        name: apache2
+        state: restarted
+
+  tasks:
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+
+    - name: Configure Apache
+      template:
+        src: apache.conf.j2
+        dest: /etc/apache2/apache.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify: Restart apache
+
+    - name: Installation install software-properties-common
+      apt: update_cache=true cache_valid_time=3600
+
+    - name: "add PHP 7.4 Repository"
+      apt_repository:
+        repo: "ppa:ondrej/php"
+
+    - name: "Updating the repo"
+      apt:
+        name: php7.4-cli
+
+    - name: Installation PHP 7.4
+      apt: name=php7.4 state=present
+
+    #- name: install lamp stack
+    #  apt:
+    #    pkg:
+    #      - php7.4-mysql
+    #      - php7.4-curl
+    #      - php7.4-json
+    #      - php7.4-cgi
+    #      - php7.4-xsl
+    #      - php7.4-cgi
+    #      - php7.4-gd
+    #      - php7.4-mbstring
+    #      - php7.4-zip
+    #      - php7.4-xmlrpc
+    #      - php7.4-soap
+    #      - php7.4-intl
+    #      - libapache2-mod-php
+    #    state: present
+    #    update_cache: yes
+
+    - name: Move the index.php
+      template:
+        src: index.php
+        dest: /var/www/html/index.php
+        owner: root
+        group: root
+        mode: 0644
